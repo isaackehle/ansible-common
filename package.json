@@ -1,0 +1,23 @@
+{
+  "name": "ansible-common",
+  "version": "0.9.90",
+  "description": "Common tasks for all ansible projects",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postversion": "git push && git push --tags"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pgkehle/ansible-common.git"
+  },
+  "author": "Paul Kehle (pgkehle@gmail.com)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pgkehle/ansible-common/issues"
+  },
+  "homepage": "https://github.com/pgkehle/ansible-common#readme",
+  "main": "tasks/main.yml",
+  "keywords": [
+    "ansible"
+  ]
+}

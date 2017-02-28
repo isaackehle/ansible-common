@@ -1,0 +1,87 @@
+---
+
+- shell: id -un
+  connection: local
+  register: username_result
+  run_once: true
+
+- set_fact:
+    username: "{{username_result.stdout}}"
+    user_key_file: "{{username_result.stdout}}.pem"
+  run_once: true
+
+- set_fact:
+    key_path:
+      user:  "{{ keys_base }}/{{ user_key_file }}"
+      group: "{{ keys_base }}/{{ group_key_file }}"
+  run_once: true
+
+- debug: var=key_path
+
+- stat:
+    path: "{{ key_path.user }}"
+  connection: local
+  register: stat_user
+
+- stat:
+    path: "{{ key_path.group }}"
+  connection: local
+  register: stat_group
+  when: group_key_file != ""
+
+- set_fact:
+    exists:
+      user: "{{stat_user is defined and stat_user.stat is defined and stat_user.stat.exists == true}}"
+      group: "{{stat_group is defined and stat_group.stat is defined and stat_group.stat.exists == true}}"
+
+- debug: var=exists
+
+#- debug: var=group_key_file
+#- debug: var=stat_user
+#- debug: var=stat_group
+#- debug: var=use_user_key_file
+
+- set_fact:
+    key_file_selection: "user"
+  when: >
+    ((use_user_key_file is defined and use_user_key_file|bool == true) or (exists.group != true)) and (exists.user == true)
+
+# if the user key file exists but the group key file does not, assume we are using the user key file
+- set_fact:
+    key_file_selection: "group"
+  when: key_file_selection != "user" and exists.group == true
+
+- debug: var=key_file_selection
+
+- fail: msg="Cannot choose a key file; group_key_file='{{ group_key_file }}'; exists={{exists}}"
+  when: key_file_selection == ""
+
+- set_fact:
+    ansible_ssh_private_key_file: "{{ key_path[key_file_selection] }}"
+
+- debug: var=ansible_ssh_private_key_file
+
+- fail: msg="No private key file available; group_key_file='{{ group_key_file }}'"
+  when: group_key_file != "" and not ansible_ssh_private_key_file is defined
+
+#
+# hostnames
+#
+
+- shell: hostname -s
+  connection: local
+  register: host_short
+  when: ansible_host == 'localhost'
+
+- shell: hostname
+  connection: local
+  register: host_long
+  when: ansible_host == 'localhost'
+
+- set_fact:
+    server_fqdn:            "{{host_long.stdout}}"
+    inventory_hostname:     "{{host_short.stdout}}"
+    ansible_distribution:   MacOS
+    ansible_architecture:   x86_64
+    gather_facts:           no
+  when: ansible_host == 'localhost'
