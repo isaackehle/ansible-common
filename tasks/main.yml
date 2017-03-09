@@ -15,7 +15,7 @@
       user:  "{{ keys_base }}/{{ user_key_file }}"
       group: "{{ keys_base }}/{{ group_key_file }}"
 
-- debug: var=key_path
+#- debug: var=key_path
 
 - stat:
     path: "{{ key_path.user }}"
@@ -33,8 +33,7 @@
       user: "{{stat_user is defined and stat_user.stat is defined and stat_user.stat.exists == true}}"
       group: "{{stat_group is defined and stat_group.stat is defined and stat_group.stat.exists == true}}"
 
-- debug: var=exists
-
+#- debug: var=exists
 #- debug: var=group_key_file
 #- debug: var=stat_user
 #- debug: var=stat_group
@@ -50,7 +49,7 @@
     key_file_selection: "group"
   when: key_file_selection != "user" and exists.group == true
 
-- debug: var=key_file_selection
+#- debug: var=key_file_selection
 
 - fail: msg="Cannot choose a key file; group_key_file='{{ group_key_file }}'; exists={{exists}}"
   when: key_file_selection == ""
@@ -58,7 +57,7 @@
 - set_fact:
     ansible_ssh_private_key_file: "{{ key_path[key_file_selection] }}"
 
-- debug: var=ansible_ssh_private_key_file
+#- debug: var=ansible_ssh_private_key_file
 
 - fail: msg="No private key file available; group_key_file='{{ group_key_file }}'"
   when: group_key_file != "" and not ansible_ssh_private_key_file is defined
