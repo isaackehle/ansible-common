@@ -14,7 +14,6 @@
     key_path:
       user:  "{{ keys_base }}/{{ user_key_file }}"
       group: "{{ keys_base }}/{{ group_key_file }}"
-  run_once: true
 
 - debug: var=key_path
 
