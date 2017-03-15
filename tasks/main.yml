@@ -1,34 +1,48 @@
 ---
 
-- shell: id -un
+#  environment:
+#    NVM_DIR: /home/{{ansible_user}}/.nvm
+#    PATH:    /{{NVM_DIR}}/versions/{{nvm.type}}/v{{nvm.ver}}/bin:{{ ansible_env.PATH }}
+
+- name: Set NVM_DIR
+  set_fact:
+    NVM_DIR: "/home/{{ansible_user}}/.nvm"
+
+- name: Get ID of local user
+  shell: id -un
   connection: local
   register: username_result
   run_once: true
 
-- set_fact:
+- name: Create username and user keyfile path
+  set_fact:
     username: "{{username_result.stdout}}"
     user_key_file: "{{username_result.stdout}}.pem"
   run_once: true
 
-- set_fact:
+- name: Set key_path for user and group permissions
+  set_fact:
     key_path:
       user:  "{{ keys_base }}/{{ user_key_file }}"
       group: "{{ keys_base }}/{{ group_key_file }}"
 
 #- debug: var=key_path
 
-- stat:
+- name: Test the user key_path
+  stat:
     path: "{{ key_path.user }}"
   connection: local
   register: stat_user
 
-- stat:
+- name: Test the group key_path
+  stat:
     path: "{{ key_path.group }}"
   connection: local
   register: stat_group
   when: group_key_file != ""
 
-- set_fact:
+- name: Get the status of both key_path values
+  set_fact:
     exists:
       user: "{{stat_user is defined and stat_user.stat is defined and stat_user.stat.exists == true}}"
       group: "{{stat_group is defined and stat_group.stat is defined and stat_group.stat.exists == true}}"
@@ -39,44 +53,67 @@
 #- debug: var=stat_group
 #- debug: var=use_user_key_file
 
-- set_fact:
+- name: Select the user key
+  set_fact:
     key_file_selection: "user"
   when: >
     ((use_user_key_file is defined and use_user_key_file|bool == true) or (exists.group != true)) and (exists.user == true)
 
-# if the user key file exists but the group key file does not, assume we are using the user key file
-- set_fact:
+- name: Select the group key
+  set_fact:
     key_file_selection: "group"
   when: key_file_selection != "user" and exists.group == true
 
 #- debug: var=key_file_selection
 
-- fail: msg="Cannot choose a key file; group_key_file='{{ group_key_file }}'; exists={{exists}}"
+- name: Fail when the key was not selected
+  fail: msg="Cannot choose a key file; group_key_file='{{ group_key_file }}'; exists={{exists}}"
   when: key_file_selection == ""
 
-- set_fact:
+- name: Set the private key file for the session
+  set_fact:
     ansible_ssh_private_key_file: "{{ key_path[key_file_selection] }}"
 
 #- debug: var=ansible_ssh_private_key_file
 
-- fail: msg="No private key file available; group_key_file='{{ group_key_file }}'"
+- name: Fail on bad group key
+  fail: msg="No private key file available; group_key_file='{{ group_key_file }}'"
   when: group_key_file != "" and not ansible_ssh_private_key_file is defined
+
+- name: Run server setup now that the server can be reached
+  setup:
+  when: ansible_host != 'localhost'
+
+#- debug: var=ansible_env
+#
+#- stat:
+#    path: "{{ansible_env.NVM_DIR}}"
+#  register: nvm_stat
+#
+#- name: Set NVM_BIN_DIR
+#  set_fact:
+#    NVM_BIN_DIR: "{{ansible_env.NVM_DIR}}/versions/{{nvm.type}}/v{{nvm.ver}}/bin"
+#
+#- debug: var=ansible_env
 
 #
 # hostnames
 #
 
-- shell: hostname -s
+- name: Get the local hostname (short)
+  shell: hostname -s
   connection: local
   register: host_short
   when: ansible_host == 'localhost'
 
-- shell: hostname
+- name: Get the local hostname (long)
+  shell: hostname
   connection: local
   register: host_long
   when: ansible_host == 'localhost'
 
-- set_fact:
+- name: Set basic facts, assuming MacOS
+  set_fact:
     server_fqdn:            "{{host_long.stdout}}"
     inventory_hostname:     "{{host_short.stdout}}"
     ansible_distribution:   MacOS
