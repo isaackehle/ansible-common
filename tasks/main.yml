@@ -80,21 +80,14 @@
   fail: msg="No private key file available; group_key_file='{{ group_key_file }}'"
   when: group_key_file != "" and not ansible_ssh_private_key_file is defined
 
-- name: Run server setup now that the server can be reached
+- name: Gather Facts now that the server can be reached
   setup:
   when: ansible_host != 'localhost'
 
-#- debug: var=ansible_env
-#
-#- stat:
-#    path: "{{ansible_env.NVM_DIR}}"
-#  register: nvm_stat
-#
-#- name: Set NVM_BIN_DIR
-#  set_fact:
-#    NVM_BIN_DIR: "{{ansible_env.NVM_DIR}}/versions/{{nvm.type}}/v{{nvm.ver}}/bin"
-#
-#- debug: var=ansible_env
+- name: Set NVM_BIN when nvm is installed
+  set_fact:
+    NVM_BIN: "{{ansible_env.NVM_DIR}}/versions/{{nvm.type}}/v{{nvm.ver}}/bin"
+  when: ansible_env.NVM_DIR is defined
 
 #
 # hostnames
