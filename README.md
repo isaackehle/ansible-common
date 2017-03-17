@@ -9,7 +9,7 @@ Available on Ansible Galaxy: [pgkehle.common](https://galaxy.ansible.com/pgkehle
 ```YAML
 - hosts: all
   roles:
-    - { role: pgkehle.common, tags: ['always'] }
+    - { role: pgkehle.common, tags: ['always'] } # Use the `always` tag for when other tags get used
 ```
 ## License
 

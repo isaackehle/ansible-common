@@ -84,11 +84,6 @@
   setup:
   when: ansible_host != 'localhost'
 
-- name: Set NVM_BIN when nvm is installed
-  set_fact:
-    NVM_BIN: "{{ansible_env.NVM_DIR}}/versions/{{nvm.type}}/v{{nvm.ver}}/bin"
-  when: ansible_env.NVM_DIR is defined
-
 #
 # hostnames
 #
