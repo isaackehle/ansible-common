@@ -2,7 +2,7 @@
 
 #  environment:
 #    NVM_DIR: /home/{{ansible_user}}/.nvm
-#    PATH:    /{{NVM_DIR}}/versions/{{nvm.type}}/v{{nvm.ver}}/bin:{{ ansible_env.PATH }}
+#    PATH:    /{{NVM_DIR}}/versions/{{nvm.type}}/v{{nvm.ver}}/bin:{{ lookup('env', 'PATH') }}
 
 - name: Set NVM_DIR
   set_fact:
