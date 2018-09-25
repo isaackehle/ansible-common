@@ -2,29 +2,33 @@
 
 #  environment:
 #    NVM_DIR: /home/{{ansible_user}}/.nvm
-#    PATH:    /{{NVM_DIR}}/versions/{{nvm.type}}/v{{nvm.ver}}/bin:{{ ansible_env.PATH }}
+#    PATH:    /{{NVM_DIR}}/versions/{{nvm.type}}/v{{nvm.ver}}/bin:{{ lookup('env', 'PATH') }}
 
 - name: Set NVM_DIR
   set_fact:
     NVM_DIR: "/home/{{ansible_user}}/.nvm"
+  no_log: true
 
 - name: Get ID of local user
   shell: id -un
   connection: local
   register: username_result
   run_once: true
+  no_log: true
 
 - name: Create username and user keyfile path
   set_fact:
     username: "{{username_result.stdout}}"
     user_key_file: "{{username_result.stdout}}.pem"
   run_once: true
+  no_log: true
 
 - name: Set key_path for user and group permissions
   set_fact:
     key_path:
       user:  "{{ keys_base }}/{{ user_key_file }}"
       group: "{{ keys_base }}/{{ group_key_file }}"
+  no_log: true
 
 #- debug: var=key_path
 
