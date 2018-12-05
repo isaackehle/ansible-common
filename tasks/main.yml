@@ -1,12 +1,13 @@
 ---
 
-#  environment:
-#    NVM_DIR: /home/{{ansible_user}}/.nvm
-#    PATH:    /{{NVM_DIR}}/versions/{{nvm.type}}/v{{nvm.ver}}/bin:{{ lookup('env', 'PATH') }}
+- name: Setup the user
+  set_fact: target_user='{{ansible_user}}'
+  when: target_user is undefined
+  tags: ['all']
 
 - name: Set NVM_DIR
   set_fact:
-    NVM_DIR: "/home/{{ansible_user}}/.nvm"
+    NVM_DIR: "/home/{{target_user}}/.nvm"
   no_log: true
 
 - name: Get ID of local user
@@ -23,27 +24,52 @@
   run_once: true
   no_log: true
 
+- name: Set group_key_path
+  set_fact:
+    group_key_path: "{{ keys_base }}/{{ group_key_file }}"
+  when: group_key_file is defined
+  # no_log: true
+
+- name: Set user_key_path
+  set_fact:
+    user_key_path: "{{ keys_base }}/{{ user_key_file }}"
+  when: user_key_file is defined
+  # no_log: true
+
+- name: Set group_key_path when not defined
+  set_fact:
+    group_key_path: ""
+  when: group_key_path is not defined
+  # no_log: true
+
+- name: Set user_key_path when not defined
+  set_fact:
+    user_key_path: ""
+  when: user_key_path is not defined
+  # no_log: true
+
 - name: Set key_path for user and group permissions
   set_fact:
     key_path:
-      user:  "{{ keys_base }}/{{ user_key_file }}"
-      group: "{{ keys_base }}/{{ group_key_file }}"
-  no_log: true
+      user:  "{{ user_key_path }}"
+      group: "{{ group_key_path }}"
 
-#- debug: var=key_path
+- debug: var=key_path
 
-- name: Test the user key_path
+
+- name: Test the user_key_path
   stat:
-    path: "{{ key_path.user }}"
+    path: "{{ user_key_path }}"
   connection: local
   register: stat_user
+  when: user_key_path is defined
 
-- name: Test the group key_path
+- name: Test the group_key_path
   stat:
-    path: "{{ key_path.group }}"
+    path: "{{ group_key_path }}"
   connection: local
   register: stat_group
-  when: group_key_file != ""
+  when: group_key_path != ""
 
 - name: Get the status of both key_path values
   set_fact:
@@ -82,7 +108,7 @@
 
 - name: Fail on bad group key
   fail: msg="No private key file available; group_key_file='{{ group_key_file }}'"
-  when: group_key_file != "" and not ansible_ssh_private_key_file is defined
+  when: group_key_path != "" and not ansible_ssh_private_key_file is defined
 
 - name: Gather Facts now that the server can be reached
   setup:
