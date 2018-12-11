@@ -1,10 +1,12 @@
 ---
 
-- name: Setup the user
-  set_fact: 
-    target_user: '{{ ansible_user }}'
-  when: target_user is undefined
-  tags: ['all']
+- name: Setup the ansible_user from generic_user
+  set_fact: ansible_user='{{generic_user.username}}'
+  when: ansible_user is undefined and generic_user is defined
+
+- name: Setup the user from ansible_user
+  set_fact: target_user='{{ansible_user}}'
+  when: target_user is undefined and ansible_user is defined
 
 - name: Set NVM_DIR
   set_fact:
