@@ -1,7 +1,7 @@
 ---
 
 - name: Setup the user
-  set_fact: target_user='{{ansible_user}}'
+  set_fact: target_user='{{ ansible_user }}'
   when: target_user is undefined
   tags: ['all']
 
