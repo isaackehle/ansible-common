@@ -1,13 +1,14 @@
 ---
 
 - name: Setup the user
-  set_fact: target_user='{{ ansible_user }}'
+  set_fact: 
+    target_user: '{{ ansible_user }}'
   when: target_user is undefined
   tags: ['all']
 
 - name: Set NVM_DIR
   set_fact:
-    NVM_DIR: "/home/{{target_user}}/.nvm"
+    NVM_DIR: "/home/{{ target_user }}/.nvm"
   no_log: true
 
 - name: Get ID of local user
@@ -39,9 +40,9 @@
 
 - name: Set basic facts, assuming MacOS
   set_fact:
-    server_fqdn:            "{{host_long.stdout}}"
-    hostname_short:         "{{host_short.stdout}}"
-    inventory_hostname:     "{{host_short.stdout}}"
+    server_fqdn:            "{{ host_long.stdout }}"
+    hostname_short:         "{{ host_short.stdout }}"
+    inventory_hostname:     "{{ host_short.stdout }}"
     ansible_distribution:   MacOS
     ansible_architecture:   x86_64
     gather_facts:           no
